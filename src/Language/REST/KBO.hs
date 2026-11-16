@@ -8,6 +8,7 @@ import           Language.REST.Op
 import           Language.REST.RuntimeTerm as RT
 import           Language.REST.SMT
 import           Language.REST.Internal.Util
+import           Language.REST.WQOConstraints.SMT (SMTConstraint(..))
 
 import qualified Data.Map as M
 
@@ -36,15 +37,11 @@ kboGTE t u = arityConstraints t `smtAnd` arityConstraints u `smtAnd` (size tOps 
 
 
 -- | OCA for a quasi-order extension to the Knuth-Bendix ordering
-kbo :: SolverHandle -> OCAlgebra (SMTExpr Bool) RuntimeTerm IO
+kbo :: SolverHandle -> OCAlgebra (SMTConstraint Op) RuntimeTerm IO
 kbo solver = OCAlgebra
-  {  isSat           = checkSat' solver
-  ,  refine
-  ,  top             = smtTrue
-  ,  union
-  ,  notStrongerThan
+  {  isSat           = checkSat' solver . unSMTConstraint
+  ,  refine          = \e t u -> SMTConstraint (unSMTConstraint e `smtAnd` kboGTE t u)
+  ,  top             = SMTConstraint smtTrue
+  ,  union           = \e1 e2 -> SMTConstraint (Or [unSMTConstraint e1, unSMTConstraint e2])
+  ,  notStrongerThan = \e1 e2 -> checkSat' solver (Implies (unSMTConstraint e2) (unSMTConstraint e1))
   }
-  where
-    union  e1 e2          = Or [e1, e2]
-    refine e t u          = e `smtAnd` kboGTE t u
-    notStrongerThan e1 e2 = checkSat' solver (Implies e2 e1)

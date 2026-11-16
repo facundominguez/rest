@@ -21,19 +21,14 @@ library
   default-language:  Haskell2010
   exposed-modules:
     Language.REST
-    Language.REST.Core
-    Language.REST.Dot
     Language.REST.ExploredTerms
     Language.REST.Internal.EquivalenceClass
-    Language.REST.Internal.ListT
     Language.REST.Internal.MultiSet
     Language.REST.Internal.MultisetOrder
     Language.REST.Internal.OpOrdering
     Language.REST.Internal.Orphans
     Language.REST.Internal.PartialOrder
-    Language.REST.Internal.Rewrite
     Language.REST.Internal.Util
-    Language.REST.Internal.WorkStrategy
     Language.REST.Internal.WQO
     Language.REST.KBO
     Language.REST.LPO
@@ -41,18 +36,12 @@ library
     Language.REST.OCAlgebra
     Language.REST.OCToAbstract
     Language.REST.Op
-    Language.REST.Path
-    Language.REST.RESTDot
     Language.REST.RPO
-    Language.REST.Rest
-    Language.REST.RewriteRule
     Language.REST.RuntimeTerm
     Language.REST.SMT
     Language.REST.Types
     Language.REST.WQOConstraints
-    Language.REST.WQOConstraints.ADT
-    Language.REST.WQOConstraints.Lazy
-    Language.REST.WQOConstraints.Strict
+    Language.REST.WQOConstraints.SMT
   hs-source-dirs: src
   build-depends:  base                 >= 4.7 && < 5
                 , containers           >= 0.6.2 && < 0.9
@@ -78,13 +67,8 @@ library testlib
                 , text
                 , time >= 1.9.3 && < 1.16
   exposed-modules:
-      Arith
-      DSL
-      Language.REST.ConcreteOC
-      Language.REST.ProofGen
-      MultisetOrdering
+      Language.REST.WQOConstraints.Strict
       Nat
-      Set
 
   hs-source-dirs: testlib
 
@@ -105,38 +89,10 @@ Test-Suite test-rest
   other-modules:
     ExploredTerms
     KBO
-    LazyOC
     MultisetOrder
     OpOrdering
     QuickCheckTests
     RPO
     SMT
-    StrictOC
     WQO
 
-Test-Suite rest
-  default-language:  Haskell2010
-  type: exitcode-stdio-1.0
-  main-is: Main.hs
-  -- ghc-plugins: -fplugin=LiquidHaskell
-  build-depends:  base >= 4.7
-                , containers
-                , hashable
-                , rest-rewrite
-                , mtl
-                , unordered-containers >= 0.2.11
-                , testlib
-                , text
-                , time
-                -- , liquidhaskell
-                -- , liquid-base
-  other-modules:
-      BagExample
-      Compiler
-      Group
-      Lists
-      Multiset
-      NonTerm
-      WQODot
-
-  hs-source-dirs: test

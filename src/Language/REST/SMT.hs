@@ -18,16 +18,21 @@ module Language.REST.SMT
   (
     checkSat
   , checkSat'
+  , commandString
+  , exprString
   , getModel
   , parseModel
   , killZ3
+  , sendCommands
   , spawnZ3
   , smtAdd
   , smtAnd
   , smtFalse
   , smtGTE
   , smtTrue
+  , vars
   , withZ3
+  , SMTCommand(..)
   , SolverHandle
   , SMTExpr(..)
   , SMTVar(..)
@@ -245,11 +250,17 @@ getModel stdIn = do
   hPutStr stdIn "(get-model)\n"
   hFlush stdIn
 
+-- | Send a list of SMT commands to a solver handle.
+sendCommands :: (Handle, Handle) -> [SMTCommand] -> IO ()
+sendCommands (stdIn, _) cmds = do
+  hPutStr stdIn $ T.unpack (T.intercalate "\n" (map commandString cmds)) ++ "\n"
+  hFlush stdIn
+
 -- | @checkSat' handles expr@ checks satisfiability of @expr@ in an instantiated SMT solver.
 --   This is wrapped in a @push@ / @pop@, so it does not change the SMT environment
 checkSat' :: (Handle,  Handle) -> SMTExpr Bool -> IO Bool
 checkSat' (stdIn, stdOut) expr = do
-  sendCommands $ Push:askCmds expr
+  sendCommands (stdIn, stdOut) $ Push:askCmds expr
   result <- hGetLine stdOut
   sat <- case result of
     "sat"   -> do
@@ -259,12 +270,8 @@ checkSat' (stdIn, stdOut) expr = do
       return True
     "unsat" -> return False
     other   -> error other
-  sendCommands [Pop]
+  sendCommands (stdIn, stdOut) [Pop]
   return sat
-  where
-    sendCommands cmds = do
-      hPutStr stdIn $ T.unpack (T.intercalate "\n" (map commandString cmds)) ++ "\n"
-      hFlush stdIn
 
 -- | @checkSat expr@ launches Z3, to checks satisfiability of @expr@, terminating Z3
 --   afterwards. Just a utility wrapper for `checkSat'`
